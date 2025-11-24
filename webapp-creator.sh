@@ -133,6 +133,9 @@ if [[ "$makeOrRemove" == [Rr] ]]; then
     read -p "Enter your Application name to remove: " NAME
     FILE="$HOME/.local/share/applications/$NAME.desktop"
     if [[ -f "$FILE" ]]; then
+      keyword="Icon="
+      value=$(grep "$keyword" "$HOME/.local/share/applications/$NAME.desktop" | sed "s/.*$keyword//")
+      rm -i "$value"
       rm -i "$FILE"
       echo "Removed $FILE"
       break
