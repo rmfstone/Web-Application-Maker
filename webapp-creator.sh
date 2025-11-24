@@ -1,8 +1,20 @@
 #!/usr/bin/env bash
 # Made by a Stone
+# Check if chromium is installed
+if ! command -V chromium >/dev/null 2>&1; then
+  echo "Chromium is not installed, but is needed for the Web-Applications to work"
+  read -p "Do you want to install chromium now? (y/n): " install_chromium
+  if [[ "$install_chromium" =~ [Yy] ]]; then
+    sudo pacman -S chromium
+  else
+    echo "You need to install chromium!"
+    exit 1
+  fi
+fi
+
 # Check if figlet is installed
 if ! command -v figlet >/dev/null 2>&1; then
-  echo "figlet is not installed."
+  echo "Figlet is not installed."
   read -p "Do you want to install figlet now? (y/n): " install_figlet
   if [[ "$install_figlet" =~ [Yy] ]]; then
     sudo pacman -S --noconfirm figlet
