@@ -14,13 +14,19 @@ fi
 
 # Check if figlet is installed
 if ! command -v figlet >/dev/null 2>&1; then
-  echo "Figlet is not installed."
-  read -p "Do you want to install figlet now? (y/n): " install_figlet
-  if [[ "$install_figlet" =~ [Yy] ]]; then
-    sudo pacman -S --noconfirm figlet
-  else
-    echo "Proceeding without figlet..."
-  fi
+  while true; do
+    echo "Figlet is not installed."
+    read -p "Do you want to install figlet now? (y/n): " install_figlet
+    if [[ "$install_figlet" =~ [Yy] ]]; then
+      sudo pacman -S --noconfirm figlet
+      break
+    elif [[ "$install_figlet" =~ [Nn] ]]; then
+      echo "Proceeding without figlet..."
+      break
+    else
+      "Not a valid option, choose eather y or n!"
+    fi
+  done
 fi
 
 # Use figlet if available
@@ -49,7 +55,7 @@ if [[ "$makeOrRemove" == [Mm] ]]; then
   read -p "Enter your desired URL: " URL
 
   while true; do
-    if [[ "$URL" =~ \  ]]; then
+    if [[ "$URL" =~ \  || "$URL" == "" ]]; then
       echo "Spaces are not allowed!"
       read -p "Enter your desired URL: " URL
     else
@@ -58,14 +64,62 @@ if [[ "$makeOrRemove" == [Mm] ]]; then
   done
 
   read -p "Enter App Name: " APP
-
   FILE="$HOME/.local/share/applications/$APP.desktop"
+
+  # download icon
+  read -p "Do you want to use a icon? (y/n) : " use_icon
+
+  if [[ "$use_icon" =~ "" ]]; then
+    use_icon="y"
+  fi
+
+  if [[ "$use_icon" != [YyNn] ]]; then
+    while true; do
+      read -p "Do you want to use a icon? (y/n) : " use_icon
+      if [[ "$use_icon" =~ [[YyNn] ]]; then
+        break
+      fi
+    done
+  fi
+
+  read -p "Where do you want the icons to be saved? (default: ~/.local/share/icons/webicons): " icon_loaction
+  while true; do
+    if [[ "$icon_loaction" =~ "" ]]; then
+      icon_loaction="$HOME/.local/share/icons/webicons"
+      break
+    elif [[ "$icon_loaction" = \  ]]; then
+      read -p "Where do you want the icons to be saved? (default: ~/.local/share/icons): " icon_loaction
+    else
+      break
+    fi
+  done
+
+  if [[ ! -d "$icon_loaction" ]]; then
+    mkdir "$icon_loaction"
+  fi
+
+  if [[ "$use_icon" =~ [Yy] ]]; then
+    read -p "Enter icon link (if nothing the script will try to download the favicon from the given URL): " custom_icon_link
+    while true; do
+      if [[ "$custom_icon_link" =~ "" ]]; then
+        wget -O "$icon_loaction/$APP.png" "https://www.google.com/s2/favicons?domain=$URL&sz=128"
+        break
+      elif [[ "$custom_icon_link" =~ \  ]]; then
+        echo "Spaces are not allowed!"
+        read -p "Enter icon link (if nothing the script will try to download the favicon from the given URL): " custom_icon_link
+      else
+        wget -O "$icon_loaction/$APP.png" "$custom_icon_link"
+        break
+      fi
+    done
+  fi
 
   cat <<EOF >"$FILE"
 [Desktop Entry]
 Name=$APP
 Exec=chromium --app=$URL
 Terminal=false
+Icon=$icon_loaction/$APP.png
 Type=Application
 EOF
 
